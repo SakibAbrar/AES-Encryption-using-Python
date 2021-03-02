@@ -13,20 +13,6 @@ Mixer = [
     ["03", "01", "01", "02"]
 ]
 
-MixerOld = [
-    [BitVector(hexstring="02"), BitVector(hexstring="03"), BitVector(hexstring="01"), BitVector(hexstring="01")],
-    [BitVector(hexstring="01"), BitVector(hexstring="02"), BitVector(hexstring="03"), BitVector(hexstring="01")],
-    [BitVector(hexstring="01"), BitVector(hexstring="01"), BitVector(hexstring="02"), BitVector(hexstring="03")],
-    [BitVector(hexstring="03"), BitVector(hexstring="01"), BitVector(hexstring="01"), BitVector(hexstring="02")]
-]
-
-InvMixer = [
-    [BitVector(hexstring="0E"), BitVector(hexstring="0B"), BitVector(hexstring="0D"), BitVector(hexstring="09")],
-    [BitVector(hexstring="09"), BitVector(hexstring="0E"), BitVector(hexstring="0B"), BitVector(hexstring="0D")],
-    [BitVector(hexstring="0D"), BitVector(hexstring="09"), BitVector(hexstring="0E"), BitVector(hexstring="0B")],
-    [BitVector(hexstring="0B"), BitVector(hexstring="0D"), BitVector(hexstring="09"), BitVector(hexstring="0E")]
-]
-
 
 def matrix_xor(mat1, mat2):
     matans = []
@@ -75,8 +61,8 @@ def shiftColumn(mat):
     pass 
 
 
-key="BUET CSE16 Batch"
-text="WillGraduateSoon"
+key="Thats my Kung Fu"
+text="Two One Nine Two"
 state_matrix = formatting.toColumnMajor(formatting.toHexArray(text))
 # print("state_matrix", state_matrix)
 w = roundkey.gen_roundkey(formatting.toRowMajor(formatting.toHexArray(key)))
@@ -86,10 +72,16 @@ def round0(mat):
     return matrix_xor(state_matrix, formatting.transpose(w.copy()[0:4]))
 
 def regularround(mat, idx):
-    return matrix_xor(mixColumn(shiftRow(substitute_matrix(mat))),formatting.transpose(w.copy()[4*idx:4*idx+4]))
+    mat = substitute_matrix(mat)
+    mat = shiftRow(mat)
+    mat = mixColumn(mat)
+    mat = matrix_xor(mat, formatting.transpose(w.copy()[4*idx:4*idx+4]))
+    return mat
 
 def roundlast(mat):
-    return matrix_xor(shiftRow(substitute_matrix(mat)),formatting.transpose(w.copy()[40:44]))
+    mat = substitute_matrix(mat)
+    mat = shiftRow(mat)
+    return matrix_xor(mat ,formatting.transpose(w.copy()[40:44]))
 
 # #round 0 step 1 add roundkey
 # state_matrix = matrix_xor(state_matrix, formatting.transpose(w.copy()[0:4]))
@@ -110,7 +102,7 @@ def roundlast(mat):
 # #round 1 step 4 add roundkey
 # state_matrix = matrix_xor(state_matrix, formatting.transpose(w.copy()[4:8]))
 
-def aes128(mat, total_round=11):
+def aes128Encrypt(mat, total_round=11):
     mat = round0(mat)
     
     for idx in range(1, total_round-1):
@@ -121,19 +113,17 @@ def aes128(mat, total_round=11):
     return mat
 
 #main run
-# aes128(state_matrix)
-state_matrix = aes128(state_matrix)
-state_matrix = formatting.transpose(state_matrix)
-print(state_matrix)
+# aes128Encrypt(state_matrix)
+state_matrix = aes128Encrypt(state_matrix)
 
 def hexArrayToText(mat):
+    print(mat)
+    trans_mat = formatting.transpose(mat)
+    print(trans_mat)
     cypher_text = ""
-    for row in mat:
+    for row in trans_mat:
         for ele in row:
             cypher_text = cypher_text + chr(int(ele, 16))
     print(cypher_text)
 
 hexArrayToText(state_matrix)
-
-
-# print([ item for innerlist in state_matrix for item in innerlist ]) 
