@@ -44,13 +44,13 @@ def shiftLeft(word):
     return word
 # print(shiftLeft(['67', '20', '46', '75']))
 
-def byte_substitution(word):
+def substitute_word(word):
     new_word = []
     for w in word:
         b = BitVector(intVal=Sbox[int(w, 16)], size=8).get_bitvector_in_hex()
         new_word.append(b)
     return new_word
-# print(byte_substitution(['20', '46', '75', '67']))
+# print(substitute_word(['20', '46', '75', '67']))
 
 
 def gen_round_const():
@@ -76,7 +76,7 @@ def add_round_const(word):
 # print(add_round_const(['B7', '5A', '9D', '85']))
 
 def g(word):
-    return add_round_const(byte_substitution(shiftLeft(word.copy())))
+    return add_round_const(substitute_word(shiftLeft(word.copy())))
 # print(g(['67', '20' ,'46', '75']))
 
 def word_xor(word1, word2):
@@ -101,7 +101,7 @@ def gen_roundkey(w, rounds=10):
         gen_one_round(w)
     return w
 
-key = [['54', '68', '61', '74'], ['73', '20', '6d', '79'], ['20', '4b', '75', '6e'], ['67', '20', '46', '75']]
+# key = [['54', '68', '61', '74'], ['73', '20', '6d', '79'], ['20', '4b', '75', '6e'], ['67', '20', '46', '75']]
 # print(key[0])
 # print(key[3])
 # print(gen_roundkey(key))
