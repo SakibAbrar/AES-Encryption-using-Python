@@ -63,13 +63,13 @@ def shiftColumn(mat):
 
 key="Thats my Kung Fu"
 text="Two One Nine Two"
-state_matrix = formatting.toColumnMajor(formatting.toHexArray(text))
+# state_matrix = formatting.toColumnMajor(formatting.toHexArray(text))
 # print("state_matrix", state_matrix)
 w = roundkey.gen_roundkey(formatting.toRowMajor(formatting.toHexArray(key)))
 # print("w", w[0:4])
 
 def round0(mat):
-    return matrix_xor(state_matrix, formatting.transpose(w.copy()[0:4]))
+    return matrix_xor(mat, formatting.transpose(w.copy()[0:4]))
 
 def regularround(mat, idx):
     mat = substitute_matrix(mat)
@@ -114,7 +114,7 @@ def aes128Encrypt(mat, total_round=11):
 
 #main run
 # aes128Encrypt(state_matrix)
-state_matrix = aes128Encrypt(state_matrix)
+# state_matrix = aes128Encrypt(state_matrix)
 
 def hexArrayToText(mat):
     print(mat)
@@ -125,5 +125,14 @@ def hexArrayToText(mat):
         for ele in row:
             cypher_text = cypher_text + chr(int(ele, 16))
     print(cypher_text)
+# hexArrayToText(state_matrix)
 
-hexArrayToText(state_matrix)
+def encryptFile(file):
+    m_arr = formatting.parseFileToMatrices(file)
+    print(len(m_arr))
+    for idx in range(len(m_arr)):
+        print(idx, " done")
+        m_arr[idx] = aes128Encrypt(m_arr[idx])
+    formatting.writeMatricesToFile(m_arr, file)
+
+encryptFile('smallest.pdf')

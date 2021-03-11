@@ -63,7 +63,7 @@ w = roundkey.gen_roundkey(formatting.toRowMajor(formatting.toHexArray(key)))
 
 def round0(mat):
     # #round 0 step 1 add roundkey
-    return matrix_xor(state_matrix, formatting.transpose(w.copy()[40:44]))
+    return matrix_xor(mat, formatting.transpose(w.copy()[40:44]))
 
 def regularround(mat, idx):
     # #round 1 step 1 iverse shift row
@@ -91,5 +91,14 @@ def aes128Decrypt(mat, total_round=11):
     mat = roundlast(mat)
 
     return mat
+# print(aes128Decrypt(state_matrix))
 
-print(aes128Decrypt(state_matrix))
+def decryptFile(file):
+    m_arr = formatting.parseFileToMatrices(file)
+    print(len(m_arr))
+    for idx in range(len(m_arr)):
+        print(idx, " done")
+        m_arr[idx] = aes128Decrypt(m_arr[idx])
+    formatting.writeMatricesToFile(m_arr, file)
+    
+decryptFile('smallest.pdf')
