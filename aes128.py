@@ -1,9 +1,9 @@
-import time
 
-# starting time
-# start = time.time()
 
 from BitVector import *
+import sys, getopt
+import time
+
 
 ####################################################
 #####################SENITIZE#######################
@@ -92,6 +92,14 @@ def flattenMatrix(mat):
     return [item for sublist in mat for item in sublist]
 # print(flattenMatrix([['54', '68', '61', '74'], ['73', '20', '6d', '79'], ['20', '4b', '75', '6e'], ['67', '20', '46', '75']]))
 
+def twoDHexToText(mat):
+    trans_mat = transpose(mat)
+    cypher_text = ""
+    for row in trans_mat:
+        for ele in row:
+            cypher_text = cypher_text + chr(int(ele, 16))
+    return cypher_text
+
 
 def writeMatricesToFile(m_arr, file):
 
@@ -121,18 +129,20 @@ REP = 0
 
 AES_modulus = BitVector(bitstring='100011011')
 
-Sbox = [0x00] * 256
-InvSbox = [0x00] * 256
+Sbox = [None] * 256
+InvSbox = [None] * 256
 
-for i in range(256):
-    if i == 0:
-        Sbox[i] = 0x63
-        continue
-    b = BitVector(intVal=i, size=8).gf_MI(AES_modulus, 8)
-    ans_int = b.int_val() ^ (b << 1).int_val() ^ (b << 1).int_val() ^ (b << 1).int_val() ^ (b << 1).int_val() ^ int('63', 16)
-    Sbox[i] = ans_int
-    InvSbox[ans_int] = i
-
+def genSboxInvSbox():
+    for i in range(256):
+        if i == 0:
+            Sbox[i] = '63'
+            InvSbox[0x63] = hex(i)[2:].rjust(2, ' ')
+            continue
+        b = BitVector(intVal=i, size=8).gf_MI(AES_modulus, 8)
+        ans_int = b.int_val() ^ (b << 1).int_val() ^ (b << 1).int_val() ^ (b << 1).int_val() ^ (b << 1).int_val() ^ int('63', 16)
+        Sbox[i] = hex(ans_int)[2:].rjust(2, ' ')
+        InvSbox[ans_int] = hex(i)[2:].rjust(2, ' ')
+genSboxInvSbox()
 # print(Sbox[int('63', 16)])
 
 def shiftRight(word):
@@ -148,7 +158,7 @@ def shiftLeft(word):
 def substitute_word(word):
     new_word = []
     for w in word:
-        b = BitVector(intVal=Sbox[int(w, 16)], size=8).get_bitvector_in_hex()
+        b = Sbox[int(w, 16)]
         new_word.append(b)
     return new_word
 # print(substitute_word(['20', '46', '75', '67']))
@@ -156,7 +166,7 @@ def substitute_word(word):
 def inv_substitute_word(word):
     new_word = []
     for w in word:
-        b = BitVector(intVal=InvSbox[int(w, 16)], size=8).get_bitvector_in_hex()
+        b = InvSbox[int(w, 16)]
         new_word.append(b)
     return new_word
 
@@ -271,7 +281,6 @@ def mixColumn(mat):
 
 
 key="Thats my Kung Fu"
-text="Two One Nine Two"
 # state_matrix = toColumnMajor(toHexArray(text))
 # print("state_matrix", state_matrix)
 w = gen_roundkey(toRowMajor(toHexArray(key)))
@@ -319,6 +328,9 @@ def hexArrayToText(mat):
             cypher_text = cypher_text + chr(int(ele, 16))
     print(cypher_text)
 # hexArrayToText(state_matrix)
+
+def encryptText(text):
+    return aes128Encrypt(toColumnMajor(toHexArray(text)))
 
 def encryptFile(file):
     m_arr = parseFileToMatrices(file)
@@ -405,6 +417,9 @@ def aes128Decrypt(mat, total_round=11):
     return mat
 # print(aes128Decrypt(state_matrix))
 
+def decryptText(text):
+    return aes128Decrypt(toColumnMajor(toHexArray(text)))
+
 def decryptFile(file):
     m_arr = parseFileToMatrices(file)
     print(len(m_arr))
@@ -422,9 +437,62 @@ def decryptFile(file):
 #################TEST START###################
 
 
-encryptFile('smallest.pdf')
-decryptFile('smallest.pdf')
+# encryptFile('smallest.pdf')
+# decryptFile('smallest.pdf')
 
+
+def main(argv):
+    # starting time
+    start = time.time()
+    try:
+        opts, args = getopt.getopt(argv,"k:edbf:s:",["encrypt=","decrypt="])
+    except getopt.GetoptError:
+        print('python aes128.py -k <key> -e -d -b -s <string> -f <file>')
+        sys.exit(2)
+
+    type = 1
+    for opt, value in opts:
+        if opt in ("-k", "--key"):
+            global w
+            w = gen_roundkey(toRowMajor(toHexArray(value)))
+        elif opt in ("-e", "--encrypt"):
+            type = 1
+        elif opt in ("-d", "--decrypt"):
+            type = 2
+        elif opt in ("-b", "--both"):
+            type = 3
+        elif opt in ("-f", "--file"):
+            if type == 1:
+                print("Encrypting...")
+                encryptFile(value)
+                print("Encrypting Finished!")
+            elif type == 2:
+                print("Decrypting...")
+                decryptFile(value)
+                print("Decrypting Finished!")
+            elif type == 3:
+                print("Encrypting...")
+                encryptFile(value)
+                print("Encrypting Finished!")
+                print("Decrypting...")
+                decryptFile(value)
+                print("Decrypting Finished!")
+        elif opt in ("-s", "--string"):
+            if type == 1:
+                print("Encrypted:", twoDHexToText(encryptText(value)))
+            elif type == 2:
+                print("Decrypted:", twoDHexToText(decryptText(value)))
+            elif type == 3:
+                mat = encryptText(value)
+                print("Encrypted:", twoDHexToText(mat))
+                mat = aes128Decrypt(mat)
+                print("Decrypted:", twoDHexToText(mat))
+
+
+       
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
 
 
 ####################################################
