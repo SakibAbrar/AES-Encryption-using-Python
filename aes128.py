@@ -334,9 +334,10 @@ def encryptText(text):
 
 def encryptFile(file):
     m_arr = parseFileToMatrices(file)
-    print(len(m_arr))
+    print("Matrices:",len(m_arr))
+    len_m_arr = len(m_arr)
     for idx in range(len(m_arr)):
-        print(idx, " done")
+        print(idx, "/", len_m_arr, " done")
         m_arr[idx] = aes128Encrypt(m_arr[idx])
     writeMatricesToFile(m_arr, file)
 
@@ -422,9 +423,10 @@ def decryptText(text):
 
 def decryptFile(file):
     m_arr = parseFileToMatrices(file)
-    print(len(m_arr))
+    print("Matrices:",len(m_arr))
+    len_m_arr = len(m_arr)
     for idx in range(len(m_arr)):
-        print(idx, " done")
+        print(idx, "/", len_m_arr, " done")
         m_arr[idx] = aes128Decrypt(m_arr[idx])
     writeMatricesToFile(m_arr, file)
 
@@ -443,7 +445,7 @@ def decryptFile(file):
 
 def main(argv):
     # starting time
-    start = time.time()
+    starttime = time.time()
     try:
         opts, args = getopt.getopt(argv,"k:edbf:s:",["encrypt=","decrypt="])
     except getopt.GetoptError:
@@ -487,7 +489,8 @@ def main(argv):
                 print("Encrypted:", twoDHexToText(mat))
                 mat = aes128Decrypt(mat)
                 print("Decrypted:", twoDHexToText(mat))
-
+    endtime = time.time()
+    print("Time Taken:", (endtime - starttime), "sec")
 
        
 
